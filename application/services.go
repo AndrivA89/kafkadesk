@@ -2,17 +2,18 @@ package application
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/AndrivA89/kafkadesk/domain"
 	"github.com/AndrivA89/kafkadesk/infrastructure"
 )
 
 type ClusterService struct {
-	storage infrastructure.Storage
+	storage *infrastructure.Storage
 	kafka   infrastructure.KafkaClient
 }
 
-func NewClusterService(storage infrastructure.Storage, kafka infrastructure.KafkaClient) *ClusterService {
+func NewClusterService(storage *infrastructure.Storage, kafka infrastructure.KafkaClient) *ClusterService {
 	return &ClusterService{storage: storage, kafka: kafka}
 }
 
@@ -27,9 +28,9 @@ func (s *ClusterService) AddCluster(cluster domain.Cluster) error {
 }
 
 func (s *ClusterService) GetTopics(clusterName string) ([]string, error) {
-	cluster, err := s.storage.GetCluster(clusterName)
+	client, err := s.storage.GetClusterClient(clusterName)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cluster not found: %s", clusterName)
 	}
-	return s.kafka.ListTopics(cluster)
+	return client.ListTopics()
 }
